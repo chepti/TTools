@@ -1,6 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ChatMessage, UserPreferences } from './types'
 import ChatInterface from './components/ChatInterface'
+import AddToolForm from './components/AddToolForm'
+import { supabase, initializeSupabase } from './config/supabase'
+import type { Database } from './config/types'
+import { PlusIcon } from '@heroicons/react/24/solid'
+
+type Tool = Database['public']['Tables']['tools']['Row']
 
 function App() {
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -13,6 +19,25 @@ function App() {
   ])
   
   const [userPreferences, setUserPreferences] = useState<UserPreferences>({})
+  const [tools, setTools] = useState<Tool[]>([])
+  const [showAddForm, setShowAddForm] = useState(false)
+
+  useEffect(() => {
+    const loadData = async () => {
+      await initializeSupabase()
+      const { data, error } = await supabase
+        .from('tools')
+        .select('*')
+      
+      if (error) {
+        console.error('Error loading tools:', error)
+      } else if (data) {
+        setTools(data)
+      }
+    }
+
+    loadData()
+  }, [])
 
   const handleNewMessage = (content: string) => {
     // Add user message
@@ -65,18 +90,42 @@ function App() {
       }
     }
 
+    // If we have enough preferences, recommend tools
+    if (preferences.purpose && preferences.contentType) {
+      const relevantTools = tools.filter(tool => {
+        const matchesPurpose = tool.category_ids.some(cat => cat.includes(preferences.purpose || ''))
+        const matchesContent = tool.category_ids.some(cat => cat.includes(preferences.contentType || ''))
+        return matchesPurpose && matchesContent
+      })
+
+      if (relevantTools.length > 0) {
+        const toolsList = relevantTools
+          .map(tool => `- ${tool.name}: ${tool.description}`)
+          .join('\n')
+        return `הנה כמה כלים שעשויים להתאים לך:\n\n${toolsList}`
+      }
+    }
+
     return 'אני מבין. תוכל לפרט יותר?'
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">מציאת כלים למורים</h1>
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700"
+          >
+            <PlusIcon className="h-5 w-5 ml-2" />
+            הוספת כלי חדש
+          </button>
         </div>
       </header>
       <main>
         <ChatInterface messages={messages} onNewMessage={handleNewMessage} />
+        {showAddForm && <AddToolForm onClose={() => setShowAddForm(false)} />}
       </main>
     </div>
   )
