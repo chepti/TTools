@@ -28,6 +28,36 @@ const ChatInterface = ({ messages, onNewMessage, onToolSelect }: ChatInterfacePr
     }
   }
 
+  const renderMessage = (message: ChatMessage) => {
+    const content = message.content
+    if (message.sender === 'system' && content.includes('כלים שעשויים להתאים לך')) {
+      const toolsList = content.split('\n\n')[1]
+      return (
+        <div className="space-y-2">
+          <p>{content.split('\n\n')[0]}</p>
+          <div className="space-y-1">
+            {toolsList.split('\n').map((tool, index) => {
+              const match = tool.match(/^- (.+?): (.+)$/)
+              if (!match) return null
+              const [, name, description] = match
+              return (
+                <div 
+                  key={index}
+                  className="p-2 bg-white rounded-lg shadow-sm hover:shadow-md cursor-pointer"
+                  onClick={() => onToolSelect(name)}
+                >
+                  <h3 className="font-medium">{name}</h3>
+                  <p className="text-sm text-gray-600">{description}</p>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )
+    }
+    return <p>{content}</p>
+  }
+
   return (
     <div className="chat-container">
       <div className="space-y-4 pb-24">
@@ -38,7 +68,7 @@ const ChatInterface = ({ messages, onNewMessage, onToolSelect }: ChatInterfacePr
               message.sender === 'user' ? 'user-message' : 'system-message'
             }`}
           >
-            <p className="text-gray-800">{message.content}</p>
+            {renderMessage(message)}
             <span className="text-xs text-gray-500 block mt-1">
               {new Date(message.timestamp).toLocaleTimeString('he-IL')}
             </span>
