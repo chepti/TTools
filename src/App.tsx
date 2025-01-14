@@ -112,6 +112,10 @@ function App() {
     return 'אני מבין. תוכל לפרט יותר?'
   }
 
+  const handleToolSelect = (toolId: string) => {
+    setSelectedToolId(toolId)
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm">
