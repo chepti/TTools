@@ -5,9 +5,10 @@ import { PaperAirplaneIcon } from '@heroicons/react/24/solid'
 interface ChatInterfaceProps {
   messages: ChatMessage[]
   onNewMessage: (content: string) => void
+  onToolSelect: (toolId: string) => void
 }
 
-const ChatInterface = ({ messages, onNewMessage }: ChatInterfaceProps) => {
+const ChatInterface = ({ messages, onNewMessage, onToolSelect }: ChatInterfaceProps) => {
   const [input, setInput] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
 

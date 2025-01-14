@@ -151,7 +151,11 @@ function App() {
         </div>
       </header>
       <main>
-        <ChatInterface messages={messages} onNewMessage={handleNewMessage} />
+        <ChatInterface 
+          messages={messages} 
+          onNewMessage={handleNewMessage} 
+          onToolSelect={handleToolSelect}
+        />
         {showAddForm === 'tool' && (
           <AddToolForm onClose={() => setShowAddForm(null)} />
         )}
