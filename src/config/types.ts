@@ -17,36 +17,49 @@ export interface Database {
           url: string
           logo_url?: string
           created_at: string
-          category_ids: string[]
-          is_free: boolean
-          language: string
+          hebrew_support: number
+          free_tier: number
+          fun_factor: number
+          pedagogical_value: number
+          output_types: string[]
+          pedagogical_contexts: string[]
+          communication_format: string
           complexity_level: number
-          features: string[]
           average_rating?: number
         }
         Insert: Omit<Database['public']['Tables']['tools']['Row'], 'id' | 'created_at' | 'average_rating'>
         Update: Partial<Database['public']['Tables']['tools']['Insert']>
       }
-      categories: {
-        Row: {
-          id: string
-          name: string
-          parent_id?: string
-        }
-        Insert: Omit<Database['public']['Tables']['categories']['Row'], 'id'>
-        Update: Partial<Database['public']['Tables']['categories']['Insert']>
-      }
-      ratings: {
+      tutorials: {
         Row: {
           id: string
           tool_id: string
-          user_id: string
+          title: string
+          format: string
+          url: string
+          additional_info?: string
+          creator: string
+          contributor: string
           rating: number
-          comment?: string
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['ratings']['Row'], 'id' | 'created_at'>
-        Update: Partial<Database['public']['Tables']['ratings']['Insert']>
+        Insert: Omit<Database['public']['Tables']['tutorials']['Row'], 'id' | 'created_at'>
+        Update: Partial<Database['public']['Tables']['tutorials']['Insert']>
+      }
+      examples: {
+        Row: {
+          id: string
+          tool_id: string
+          url: string
+          title: string
+          description: string
+          creator: string
+          contributor: string
+          rating: number
+          created_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['examples']['Row'], 'id' | 'created_at'>
+        Update: Partial<Database['public']['Tables']['examples']['Insert']>
       }
     }
   }

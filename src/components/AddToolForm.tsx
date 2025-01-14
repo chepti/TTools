@@ -4,16 +4,46 @@ import type { Database } from '../config/types'
 
 type Tool = Database['public']['Tables']['tools']['Insert']
 
+const outputTypeOptions = [
+  'טקסט',
+  'תרשים',
+  'אפליקציה',
+  'טבלה',
+  'תמונה',
+  'סרטון',
+  'קול'
+]
+
+const pedagogicalContextOptions = [
+  'הוראה',
+  'למידה',
+  'הערכה',
+  'תכנון',
+  'ארגון',
+  'תקשורת'
+]
+
+const communicationFormatOptions = [
+  'צ\'אט',
+  'טופס',
+  'עורך',
+  'מחולל',
+  'מנתח'
+]
+
 export default function AddToolForm({ onClose }: { onClose: () => void }) {
   const [formData, setFormData] = useState<Partial<Tool>>({
     name: '',
     description: '',
     url: '',
-    is_free: true,
-    language: 'multi',
-    complexity_level: 1,
-    category_ids: [],
-    features: []
+    hebrew_support: 3,
+    free_tier: 3,
+    fun_factor: 3,
+    pedagogical_value: 3,
+    output_types: [],
+    pedagogical_contexts: [],
+    communication_format: 'צ\'אט',
+    complexity_level: 3
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -42,18 +72,12 @@ export default function AddToolForm({ onClose }: { onClose: () => void }) {
     }
   }
 
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const categories = e.target.value.split(',').map(cat => cat.trim())
-    setFormData(prev => ({ ...prev, category_ids: categories }))
-  }
-
-  const handleFeaturesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const features = e.target.value.split(',').map(feat => feat.trim())
-    setFormData(prev => ({ ...prev, features }))
+  const handleArrayChange = (field: keyof Tool, value: string[]) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
   }
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4 overflow-y-auto">
       <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl">
         <h2 className="text-2xl font-bold mb-4">הוספת כלי חדש</h2>
         
@@ -91,66 +115,128 @@ export default function AddToolForm({ onClose }: { onClose: () => void }) {
             />
           </div>
 
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700">שפה</label>
-              <select
-                value={formData.language}
-                onChange={e => setFormData(prev => ({ ...prev, language: e.target.value }))}
-                className="mt-1 block w-full rounded-md border border-gray-300 p-2"
-              >
-                <option value="multi">רב-לשוני</option>
-                <option value="en">אנגלית</option>
-                <option value="he">עברית</option>
-              </select>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">תמיכה בעברית (1-5)</label>
+              <input
+                type="range"
+                min="1"
+                max="5"
+                value={formData.hebrew_support}
+                onChange={e => setFormData(prev => ({ ...prev, hebrew_support: Number(e.target.value) }))}
+                className="mt-1 block w-full"
+              />
+              <div className="text-center">{formData.hebrew_support}</div>
             </div>
 
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700">רמת מורכבות</label>
-              <select
-                value={formData.complexity_level}
-                onChange={e => setFormData(prev => ({ ...prev, complexity_level: Number(e.target.value) }))}
-                className="mt-1 block w-full rounded-md border border-gray-300 p-2"
-              >
-                {[1, 2, 3, 4, 5].map(level => (
-                  <option key={level} value={level}>{level}</option>
-                ))}
-              </select>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">רמת חינמיות (1-5)</label>
+              <input
+                type="range"
+                min="1"
+                max="5"
+                value={formData.free_tier}
+                onChange={e => setFormData(prev => ({ ...prev, free_tier: Number(e.target.value) }))}
+                className="mt-1 block w-full"
+              />
+              <div className="text-center">{formData.free_tier}</div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">רמת חוויתיות (1-5)</label>
+              <input
+                type="range"
+                min="1"
+                max="5"
+                value={formData.fun_factor}
+                onChange={e => setFormData(prev => ({ ...prev, fun_factor: Number(e.target.value) }))}
+                className="mt-1 block w-full"
+              />
+              <div className="text-center">{formData.fun_factor}</div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">ערך פדגוגי (1-5)</label>
+              <input
+                type="range"
+                min="1"
+                max="5"
+                value={formData.pedagogical_value}
+                onChange={e => setFormData(prev => ({ ...prev, pedagogical_value: Number(e.target.value) }))}
+                className="mt-1 block w-full"
+              />
+              <div className="text-center">{formData.pedagogical_value}</div>
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">קטגוריות (מופרדות בפסיקים)</label>
-            <input
-              type="text"
-              required
-              placeholder="design, images, content"
-              value={formData.category_ids?.join(', ')}
-              onChange={handleCategoryChange}
-              className="mt-1 block w-full rounded-md border border-gray-300 p-2"
-            />
+            <label className="block text-sm font-medium text-gray-700">סוגי תוצרים</label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {outputTypeOptions.map(type => (
+                <label key={type} className="inline-flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={formData.output_types?.includes(type)}
+                    onChange={e => {
+                      const newTypes = e.target.checked
+                        ? [...(formData.output_types || []), type]
+                        : (formData.output_types || []).filter(t => t !== type)
+                      handleArrayChange('output_types', newTypes)
+                    }}
+                    className="rounded border-gray-300"
+                  />
+                  <span className="mr-2">{type}</span>
+                </label>
+              ))}
+            </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">תכונות (מופרדות בפסיקים)</label>
-            <input
-              type="text"
-              required
-              placeholder="text_to_image, variations, templates"
-              value={formData.features?.join(', ')}
-              onChange={handleFeaturesChange}
-              className="mt-1 block w-full rounded-md border border-gray-300 p-2"
-            />
+            <label className="block text-sm font-medium text-gray-700">הקשרים פדגוגיים</label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {pedagogicalContextOptions.map(context => (
+                <label key={context} className="inline-flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={formData.pedagogical_contexts?.includes(context)}
+                    onChange={e => {
+                      const newContexts = e.target.checked
+                        ? [...(formData.pedagogical_contexts || []), context]
+                        : (formData.pedagogical_contexts || []).filter(c => c !== context)
+                      handleArrayChange('pedagogical_contexts', newContexts)
+                    }}
+                    className="rounded border-gray-300"
+                  />
+                  <span className="mr-2">{context}</span>
+                </label>
+              ))}
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">פורמט תקשורת</label>
+            <select
+              value={formData.communication_format}
+              onChange={e => setFormData(prev => ({ ...prev, communication_format: e.target.value }))}
+              className="mt-1 block w-full rounded-md border border-gray-300 p-2"
+            >
+              {communicationFormatOptions.map(format => (
+                <option key={format} value={format}>{format}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">רמת מורכבות (1-5)</label>
             <input
-              type="checkbox"
-              checked={formData.is_free}
-              onChange={e => setFormData(prev => ({ ...prev, is_free: e.target.checked }))}
-              className="rounded border-gray-300"
+              type="range"
+              min="1"
+              max="5"
+              value={formData.complexity_level}
+              onChange={e => setFormData(prev => ({ ...prev, complexity_level: Number(e.target.value) }))}
+              className="mt-1 block w-full"
             />
-            <label className="text-sm font-medium text-gray-700">חינמי</label>
+            <div className="text-center">{formData.complexity_level}</div>
           </div>
 
           {error && (
